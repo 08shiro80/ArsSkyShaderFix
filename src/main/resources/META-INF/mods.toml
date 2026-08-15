@@ -1,0 +1,44 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="GPL-3.0-only"
+
+[[mods]]
+modId="arsskyfix"
+version="1.0.0"
+displayName="Ars Sky Shader Fix"
+authors="kasch_x"
+description='''
+Makes the Ars Nouveau Sky Block usable with Oculus shaderpacks. Its vanilla effect relies on a
+custom core shader that Oculus ignores, leaving the block rendered black. When a shaderpack is
+active this addon draws the block through the shaderpack's own sky shader instead, so it shows
+the real sky. Pick the look in the config (renderMode: SHADER / HYBRID / SKYBASIC / SOLID, default SHADER).
+Without a shaderpack the vanilla effect is left untouched.
+'''
+
+[[dependencies.arsskyfix]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.arsskyfix]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1]"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.arsskyfix]]
+    modId="ars_nouveau"
+    mandatory=true
+    versionRange="[4.12.0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.arsskyfix]]
+    modId="oculus"
+    mandatory=false
+    versionRange="[1.8.0,)"
+    ordering="AFTER"
+    side="CLIENT"

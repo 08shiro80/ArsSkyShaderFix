@@ -1,0 +1,45 @@
+{
+ "name": "Sildur's Vibrant",
+ "detect": [
+  "sildur"
+ ],
+ "render": "block",
+ "patches": [
+  {
+   "file": "block.properties",
+   "op": "INSERT_AFTER",
+   "anchor": "# Fallback for 1.20.2 and below:\r\n",
+   "payload": "block.10500 = ars_nouveau:sky_block\r\n"
+  },
+  {
+   "file": "gbuffers_textured.vsh",
+   "op": "INSERT_AFTER",
+   "anchor": "attribute vec4 mc_Entity;\n",
+   "payload": "uniform int blockEntityId; // ArsSkyShaderFix\n"
+  },
+  {
+   "file": "gbuffers_textured.vsh",
+   "op": "INSERT_AFTER",
+   "anchor": "\tnormal.xyz = normalize(gl_NormalMatrix * gl_Normal);\n",
+   "payload": "\n\t// ArsSkyShaderFix: sky_block (block-entity) sides/bottom -> marker material 0.95\n\tif (blockEntityId == 10500) normal.a = 0.95;\n"
+  },
+  {
+   "file": "deferred.fsh",
+   "op": "INSERT_AFTER",
+   "anchor": "\tfloat mats = texture2D(colortex1, texcoord.xy).b;\n",
+   "payload": "\tbool arsSky = (mats > 0.93 && mats < 0.97); // ArsSkyShaderFix: sky_block side marker\n"
+  },
+  {
+   "file": "deferred.fsh",
+   "op": "REPLACE",
+   "anchor": "\tif(depth0 >= 1.0) {\n",
+   "payload": "\tif(depth0 >= 1.0 || arsSky) {\n"
+  },
+  {
+   "file": "shadow.vsh",
+   "op": "INSERT_AFTER",
+   "anchor": "#endif\t\n",
+   "payload": "\t// ArsSkyShaderFix: sky_block casts no shadow\n\tif (mc_Entity.x == 10500.0) { gl_Position = vec4(0.0); return; }\n\n"
+  }
+ ]
+}

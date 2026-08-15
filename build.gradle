@@ -1,0 +1,76 @@
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'org.spongepowered.mixin' version '0.7.+'
+}
+
+group = 'com.arsskyfix'
+version = '1.0.0'
+base.archivesName = 'arsskyfix'
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+
+minecraft {
+    mappings channel: 'official', version: '1.20.1'
+
+    runs {
+        client {
+            workingDirectory project.file('run')
+            property 'forge.logging.console.level', 'debug'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            mods {
+                arsskyfix {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+repositories {
+    // All compile-time mods are pulled from the local 1.20.1 pack folder.
+}
+
+def refMods = "${projectDir}/libs"
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.20.1-47.4.10'
+
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    // Compiled against the exact versions shipped in the pack; all are provided at runtime.
+    compileOnly fg.deobf(files("${refMods}/ars_nouveau-1.20.1-4.12.7-all.jar"))
+    compileOnly fg.deobf(files("${refMods}/oculus-mc1.20.1-1.8.0.jar"))
+    // GeckoLib is a transitive dependency of Ars Nouveau, referenced by its tile hierarchy.
+    compileOnly fg.deobf(files("${refMods}/geckolib-forge-1.20.1-4.8.3.jar"))
+}
+
+mixin {
+    add sourceSets.main, "arsskyfix.refmap.json"
+    config "arsskyfix.mixins.json"
+    config "arsskyfix.iris.mixins.json"
+}
+
+jar {
+    manifest {
+        attributes([
+            "Specification-Title"     : "arsskyfix",
+            "Specification-Vendor"    : "kasch_x",
+            "Specification-Version"   : "1",
+            "Implementation-Title"    : project.name,
+            "Implementation-Version"  : project.jar.archiveVersion,
+            "Implementation-Vendor"   : "kasch_x",
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            "MixinConfigs"            : "arsskyfix.mixins.json,arsskyfix.iris.mixins.json"
+        ])
+    }
+}
+
+jar.finalizedBy('reobfJar')
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}

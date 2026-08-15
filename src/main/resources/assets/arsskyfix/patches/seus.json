@@ -1,0 +1,15 @@
+{
+ "name": "SEUS Renewed",
+ "detect": [
+  "seus",
+  "renewed"
+ ],
+ "patches": [
+  {
+   "file": "gbuffers_skybasic.vsh",
+   "op": "INSERT_AFTER",
+   "anchor": "\tgl_Position = gl_ProjectionMatrix * gbufferModelView * worldPosition;\r\n",
+   "payload": "\tif (gl_Color.r < 0.01 && gl_Color.g > 0.99 && gl_Color.b < 0.01) gl_Position = ftransform(); // arsskyfix: sky_block keeps real depth (occlusion, no far-projection)\r\n"
+  }
+ ]
+}

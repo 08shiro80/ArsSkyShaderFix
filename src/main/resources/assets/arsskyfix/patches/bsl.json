@@ -1,0 +1,38 @@
+{
+ "name": "BSL",
+ "detect": [
+  "bsl"
+ ],
+ "patches": [
+  {
+   "file": "program/gbuffers_skybasic.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "varying vec3 upVec, sunVec;\r\n",
+   "payload": "varying vec3 arsGlColor;\r\n"
+  },
+  {
+   "file": "program/gbuffers_skybasic.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "varying vec3 sunVec, upVec;\r\n",
+   "payload": "varying vec3 arsGlColor;\r\n"
+  },
+  {
+   "file": "program/gbuffers_skybasic.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "\tgl_Position = ftransform();\r\n",
+   "payload": "\tarsGlColor = gl_Color.rgb; // arsskyfix: vertex colour -> fsh for sky_block marker\r\n"
+  },
+  {
+   "file": "program/gbuffers_skybasic.glsl",
+   "op": "REPLACE",
+   "anchor": "    /* DRAWBUFFERS:0 */\r\n\tgl_FragData[0] = vec4(albedo, alpha);",
+   "payload": "    /* DRAWBUFFERS:03 */\r\n\tgl_FragData[0] = vec4(albedo, alpha);\r\n\tgl_FragData[1] = vec4(0.0, 0.0, (arsGlColor.g > 0.99 && arsGlColor.r < 0.01 && arsGlColor.b < 0.01) ? 1.0 : 0.0, 1.0); // arsskyfix: sky_block marker -> colortex3.b"
+  },
+  {
+   "file": "program/deferred1.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "\tfloat z = texture2D(depthtex0, texCoord).r;",
+   "payload": "\r\n\tif (texture2D(colortex3, texCoord).b > 0.5) z = 1.0; // arsskyfix: sky_block -> sky branch + clouds"
+  }
+ ]
+}
