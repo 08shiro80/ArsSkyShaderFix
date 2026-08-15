@@ -1,0 +1,13 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "com.arsskyfix.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "IncludeGraphMixin",
+    "IdMapMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

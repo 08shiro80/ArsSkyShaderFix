@@ -1,0 +1,63 @@
+{
+ "name": "Photon",
+ "detect": [
+  "photon"
+ ],
+ "render": "block",
+ "patches": [
+  {
+   "file": "block.properties",
+   "op": "INSERT_AFTER",
+   "anchor": "block.10080 = snow redstone_wire string tripwire glass glass_pane chain minecraft:tall_seagrass cave_vines_plant:berries=false cave_vines:berries=false sea_pickle:waterlogged=false rail lever grindstone bell daylight_sensor powered_rail:powered=false repeater:powered=false comparator:powered=false stone_button polished_blackstone_button stone_pressure_plate polished_blackstone_pressure_plate nether_brick_fence cobblestone_wall mossy_cobblestone_wall stone_brick_wall mossy_stone_brick_wall granite_wall diorite_wall andesite_wall cobbled_deepslate_wall polished_deepslate_wall deepslate_brick_wall deepslate_tile_wall brick_wall mud_brick_wall sandstone_wall red_sandstone_wall prismarine_wall nether_brick_wall red_nether_brick_wall blackstone_wall polished_blackstone_wall polished_blackstone_brick_wall end_stone_brick_wall pointed_dripstone:thickness=tip pointed_dripstone:thickness=frustum big_dripleaf_stem big_dripleaf activator_rail:powered=false potted_cherry_sapling potted_dandelion potted_poppy potted_blue_orchid potted_allium potted_azure_bluet potted_red_tulip potted_orange_tulip potted_white_tulip potted_pink_tulip potted_oxeye_daisy potted_cornflower potted_lily_of_the_valley potted_wither_rose potted_oak_sapling potted_spruce_sapling potted_birch_sapling potted_jungle_sapling potted_acacia_sapling potted_dark_oak_sapling potted_red_mushroom potted_brown_mushroom potted_fern potted_dead_bush potted_cactus potted_bamboo potted_azalea_bush potted_flowering_azalea_bush potted_warped_roots potted_mangrove_propagule flower_pot bamboo_sapling detector_rail:powered=false white_carpet orange_carpet magenta_carpet light_blue_carpet yellow_carpet lime_carpet pink_carpet gray_carpet light_gray_carpet cyan_carpet purple_carpet blue_carpet brown_carpet green_carpet red_carpet black_carpet moss_carpet pointed_dripstone:thickness=tip_merge white_bed orange_bed magenta_bed light_blue_bed yellow_bed lime_bed pink_bed gray_bed light_gray_bed cyan_bed purple_bed blue_bed brown_bed green_bed red_bed black_bed stonecutter dried_ghast\n\n",
+   "payload": "# ArsSkyShaderFix: Ars Nouveau sky_block -> material_mask 250\nblock.10250 = ars_nouveau:sky_block\n\n"
+  },
+  {
+   "file": "program/d1_clouds.fsh",
+   "op": "INSERT_AFTER",
+   "anchor": "uniform sampler2D colortex8; // cloud shadow map\n",
+   "payload": "\nuniform sampler2D colortex1; // gbuffer 0 (ArsSkyShaderFix material mask)\n"
+  },
+  {
+   "file": "program/d1_clouds.fsh",
+   "op": "INSERT_AFTER",
+   "anchor": "#include \"/include/utility/space_conversion.glsl\"\n",
+   "payload": "#include \"/include/utility/encoding.glsl\"\n"
+  },
+  {
+   "file": "program/d1_clouds.fsh",
+   "op": "INSERT_AFTER",
+   "anchor": "        (depth_max == 1.0 && !is_lod) ? -1.0 : length(view_pos) * CLOUDS_SCALE;\n\n",
+   "payload": "    // ArsSkyShaderFix: sky_block sides -> render clouds behind them (infinite)\n    if (uint(255.0 * unpack_unorm_2x8(\n            texture(colortex1, uv * taau_render_scale).y).y) == 250u) {\n        distance_to_terrain = -1.0;\n    }\n\n"
+  },
+  {
+   "file": "program/d2_clouds_upscaling.fsh",
+   "op": "INSERT_AFTER",
+   "anchor": "uniform sampler2D colortex14; // previous frame depth\n",
+   "payload": "uniform sampler2D colortex1; // gbuffer 0 (ArsSkyShaderFix material mask)\n"
+  },
+  {
+   "file": "program/d2_clouds_upscaling.fsh",
+   "op": "INSERT_AFTER",
+   "anchor": "    float depth = texelFetch(depthtex1, dst_texel, 0).x;\n\n",
+   "payload": "    // ArsSkyShaderFix: sky_block sides -> treat as sky so clouds accumulate (no\n    // \"covered by terrain\" reset AND no disocclusion -> fixes cloud shimmer).\n    vec4 ars_g0 = texelFetch(colortex1, dst_texel, 0);\n    bool ars_marker =\n        uint(255.0 * unpack_unorm_2x8(ars_g0.y).y) == 250u;\n    if (ars_marker) depth = 1.0;\n\n"
+  },
+  {
+   "file": "program/d2_clouds_upscaling.fsh",
+   "op": "REPLACE",
+   "anchor": "         distance_to_terrain_squared < sqr(closest_distance));\n",
+   "payload": "         distance_to_terrain_squared < sqr(closest_distance) && !ars_marker);\n"
+  },
+  {
+   "file": "program/d4_deferred_shading.fsh",
+   "op": "INSERT_AFTER",
+   "anchor": "        fragment_color = purkinje_shift(fragment_color, light_levels);\n",
+   "payload": "\n        // ArsSkyShaderFix: sky_block sides/bottom render the sky (real depth)\n        if (material_mask == 250u) {\n#if defined WORLD_OVERWORLD\n            fragment_color = draw_sky(\n                direction_world,\n                atmosphere,\n                clouds_and_aurora,\n                clouds_apparent_distance\n            );\n#ifdef BLOCKY_CLOUDS\n            fragment_color =\n                fragment_color * blocky_clouds.w + blocky_clouds.xyz;\n#endif\n            vec4 ars_fog = common_fog(far, true);\n            fragment_color = mix(ars_fog.rgb, fragment_color, ars_fog.a);\n#else\n            fragment_color = draw_sky(direction_world);\n#endif\n            fragment_color = purkinje_shift(fragment_color, vec2(0.0, 1.0));\n        }\n"
+  },
+  {
+   "file": "program/shadow.vsh",
+   "op": "INSERT_AFTER",
+   "anchor": "    return;\n#endif\n\n",
+   "payload": "    // ArsSkyShaderFix: sky_block casts no shadow\n    if (material_mask == 250u) {\n        gl_Position = vec4(-1.0);\n        return;\n    }\n\n"
+  }
+ ]
+}

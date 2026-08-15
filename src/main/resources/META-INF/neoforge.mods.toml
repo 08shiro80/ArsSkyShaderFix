@@ -1,0 +1,50 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="GPL-3.0-only"
+
+[[mods]]
+modId="arsskyfix"
+version="1.0.0"
+displayName="Ars Sky Shader Fix"
+authors="kasch_x"
+description='''
+Makes the Ars Nouveau Sky Block usable with Iris shaderpacks. Its vanilla effect relies on a
+custom core shader that Iris ignores, leaving the block rendered black. When a shaderpack is
+active this addon draws the block through the shaderpack's own sky shader instead, so it shows
+the real sky. Pick the look in the config (renderMode: SHADER / HYBRID / SKYBASIC / SOLID, default SHADER).
+Without a shaderpack the vanilla effect is left untouched.
+'''
+
+[[mixins]]
+config="arsskyfix.mixins.json"
+
+[[mixins]]
+config="arsskyfix.iris.mixins.json"
+
+[[dependencies.arsskyfix]]
+    modId="neoforge"
+    type="required"
+    versionRange="[21.1.0,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.arsskyfix]]
+    modId="minecraft"
+    type="required"
+    versionRange="[1.21.1]"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.arsskyfix]]
+    modId="ars_nouveau"
+    type="required"
+    versionRange="[5.13.0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.arsskyfix]]
+    modId="iris"
+    type="optional"
+    versionRange="[1.8.0,)"
+    ordering="AFTER"
+    side="CLIENT"
