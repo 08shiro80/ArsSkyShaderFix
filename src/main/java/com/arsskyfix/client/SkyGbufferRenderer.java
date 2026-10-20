@@ -5,6 +5,8 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import net.irisshaders.iris.shaderpack.materialmap.WorldRenderingSettings;
+import net.irisshaders.iris.uniforms.CapturedRenderingState;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -21,10 +23,18 @@ import org.joml.Matrix4f;
 // The block colour here is irrelevant (deferred overwrites it); the top face uses the shared config marker.
 public final class SkyGbufferRenderer {
 
+    // Block-entity id of the currently rendering sky_block, resolved from the active pack's block.properties
+    // mapping. Read by the GBUFFER render type's setup runnable (which runs at flush/draw time) so the
+    // blockEntityId uniform is correct exactly when the faces hit gbuffers_block - Oculus sets the uniform
+    // only for the duration of the block-entity render call, long before the buffered custom draw flushes.
+    private static volatile int currentSkyBlockId = -1;
+
     private SkyGbufferRenderer() {
     }
 
     public static void render(SkyBlockTile tile, float partialTick, PoseStack pose, MultiBufferSource buffers) {
+        var ids = WorldRenderingSettings.INSTANCE.getBlockStateIds();
+        currentSkyBlockId = ids == null ? -1 : ids.getOrDefault(tile.getBlockState(), -1);
         PoseStack.Pose last = pose.last();
         Matrix4f matrix = last.pose();
         VertexConsumer vc = buffers.getBuffer(GbufferType.GBUFFER);
@@ -55,7 +65,9 @@ public final class SkyGbufferRenderer {
             false,
             RenderType.CompositeState.builder()
                 .setShaderState(new RenderStateShard.ShaderStateShard(GameRenderer::getRendertypeEntitySolidShader))
-                .setTextureState(BLOCK_SHEET)
+                .setTextureState(new RenderStateShard.EmptyTextureStateShard(
+                    () -> CapturedRenderingState.INSTANCE.setCurrentBlockEntity(currentSkyBlockId),
+                    () -> CapturedRenderingState.INSTANCE.setCurrentBlockEntity(0)))
                 .setTransparencyState(NO_TRANSPARENCY)
                 .setLightmapState(LIGHTMAP)
                 .setOverlayState(OVERLAY)

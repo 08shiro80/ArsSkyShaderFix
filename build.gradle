@@ -6,11 +6,24 @@ plugins {
 }
 
 group = 'com.arsskyfix'
-version = '1.0.0'
+version = '1.0.1'
 base.archivesName = 'arsskyfix'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
+// Single source of truth for the mod version: 'version' above. mods.toml reads it at runtime via
+// ${file.jarVersion} from the jar manifest set here.
+jar {
+    manifest {
+        attributes([
+            'Implementation-Version': project.version
+        ])
+    }
+}
+
+// Shader profiles + textures are version-independent and shared with the 1.21.1 build.
+// Editing ../shared/resources applies to both; there is no per-project copy.
+sourceSets.main.resources.srcDir '../shared/resources'
 
 minecraft {
     mappings channel: 'official', version: '1.20.1'
@@ -31,21 +44,24 @@ minecraft {
 }
 
 repositories {
-    // All compile-time mods are pulled from the local 1.20.1 pack folder.
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
 }
-
-def refMods = "${projectDir}/libs"
 
 dependencies {
     minecraft 'net.minecraftforge:forge:1.20.1-47.4.10'
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    // Compiled against the exact versions shipped in the pack; all are provided at runtime.
-    compileOnly fg.deobf(files("${refMods}/ars_nouveau-1.20.1-4.12.7-all.jar"))
-    compileOnly fg.deobf(files("${refMods}/oculus-mc1.20.1-1.8.0.jar"))
+    // Compile-time references only (API surface); provided at runtime by the pack. Pulled from Modrinth by
+    // version id (unique per file; version numbers collide across loaders/MC versions -> wrong java target).
+    compileOnly fg.deobf("maven.modrinth:ars-nouveau:Hw2aD01e")     // 4.12.7, forge 1.20.1
+    compileOnly fg.deobf("maven.modrinth:oculus:iQ1SwGc3")          // 1.20.1-1.8.0, forge 1.20.1
     // GeckoLib is a transitive dependency of Ars Nouveau, referenced by its tile hierarchy.
-    compileOnly fg.deobf(files("${refMods}/geckolib-forge-1.20.1-4.8.3.jar"))
+    compileOnly fg.deobf("maven.modrinth:geckolib:HVdLnQMI")        // 4.8.3, forge 1.20.1
 }
 
 mixin {

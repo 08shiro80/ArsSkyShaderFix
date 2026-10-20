@@ -15,13 +15,16 @@ The pack is patched **at runtime, in memory** — the files in your `shaderpacks
 | [`1.21.1`](../../tree/1.21.1) | 1.21.1 | NeoForge | Iris |
 | [`1.20.1`](../../tree/1.20.1) | 1.20.1 | Forge 47.x | Oculus + Embeddium |
 
-Both branches share the **same shader-pack profiles** and behave identically — the backport only swaps
-the loader glue, the config API and the 1.20.1 vertex-builder API. Oculus reuses Iris's
-`net.irisshaders.iris.*` API namespace, so the shader-side logic carried over unchanged.
+Both branches share the **same shader-pack profiles** (branch [`shared`](../../tree/shared)) — the backport
+swaps the loader glue, the config API and the 1.20.1 vertex-builder API. Oculus reuses Iris's
+`net.irisshaders.iris.*` API namespace, so the shader-side logic carried over unchanged. 1.20.1 additionally
+has an in-game config screen and re-applies the block's shader id at draw time (needed for the block-path
+packs under Oculus + Embeddium).
 
 ## Supported shaderpacks (SHADER mode)
 
-Complementary Reimagined/Unbound (±EuphoriaPatches), Photon, BSL, SEUS Renewed, Sildur's Vibrant.
+Complementary Reimagined/Unbound (±EuphoriaPatches), Photon, BSL, SEUS Renewed, Sildur's Vibrant, Solas,
+Hysteria, Spooklementary, Mellow, Reverie, Bliss.
 Many other "normal-sky" packs also work out of the box. Pathtracers (SEUS PTGI, Kappa) and packs that
 build their sky in an unusual way aren't supported — support is per-family because every pack builds its
 sky differently.
@@ -40,17 +43,24 @@ recolour or disable via `topMarker` / `topColor{R,G,B}`.
 
 ## Building
 
+The shader-pack profiles and textures are shared by both versions and live in their own branch,
+[`shared`](../../tree/shared). **You must clone that branch too**, into a folder named `shared` right next to
+the version folder — the build picks it up via the relative path `../shared/resources`:
+
 ```
-./gradlew build   # -> build/libs/arsskyfix-1.0.0.jar
+git clone -b 1.21.1 https://github.com/08shiro80/ArsSkyShaderFix.git ArsSkyShaderFix-1.21.1
+git clone -b shared https://github.com/08shiro80/ArsSkyShaderFix.git shared
+cd ArsSkyShaderFix-1.21.1
+./gradlew build   # -> build/libs/arsskyfix-1.0.1.jar
 ```
 
-The addon compiles against Ars Nouveau + the shader mod (+ GeckoLib) as `compileOnly` dependencies.
-Drop the matching jars into a `libs/` folder in the project root before building:
+(Use `-b 1.20.1` for the 1.20.1 version; both can sit next to the same `shared` folder.)
 
-- **1.21.1:** `ars_nouveau-1.21.1-5.13.0.jar`, `iris-neoforge-1.8.14-beta.1+mc1.21.1.jar`
-  (GeckoLib is pulled from Modrinth maven automatically).
-- **1.20.1:** `ars_nouveau-1.20.1-4.12.7-all.jar`, `oculus-mc1.20.1-1.8.0.jar`,
-  `geckolib-forge-1.20.1-4.8.3.jar`.
+Without the `shared` folder the build still succeeds, but the jar contains no profiles and no textures —
+SHADER mode does nothing and the SOLID/fallback faces render with a missing texture.
+
+The addon compiles against Ars Nouveau + the shader mod (+ GeckoLib) as `compileOnly` dependencies, pulled
+automatically from the Modrinth maven — no jars to download by hand.
 
 ## For modders — adding shaderpack support
 
@@ -59,4 +69,4 @@ See **[PROFILES.md](PROFILES.md)** for the profile format and how to add/edit on
 
 ## License
 
-[GNU GPL v3.0](LICENSE). Feel free to read, reference and reuse under its terms.
+[DLB Non-Commercial License 1.0](LICENSE).

@@ -1,10 +1,10 @@
 modLoader="javafml"
 loaderVersion="[47,)"
-license="GPL-3.0-only"
+license="DLB Non-Commercial 1.0 (see LICENSE)"
 
 [[mods]]
 modId="arsskyfix"
-version="1.0.0"
+version="${file.jarVersion}"
 displayName="Ars Sky Shader Fix"
 authors="kasch_x"
 description='''

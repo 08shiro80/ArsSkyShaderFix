@@ -7,12 +7,15 @@ Each profile tells the runtime patcher how to inject the Sky Block sky into that
 ## Where profiles live
 
 ```
-src/main/resources/assets/arsskyfix/patches/<family>.json
+resources/assets/arsskyfix/patches/<family>.json   (branch `shared`, cloned as ../shared)
 ```
 
+The profiles are shared by both versions; one edit applies to the 1.21.1 and the 1.20.1 build.
+
 Registered families are listed in `ArsPatcher.FAMILIES`
-(`complementary`, `photon`, `bsl`, `seus`, `sildurs`). **To add a new pack, add its `<family>.json`
-here and add the file's base name to that array.**
+(`complementary`, `photon`, `bsl`, `seus`, `sildurs`, `solas`, `hysteria`, `spooklementary`, `mellow`,
+`reverie`, `bliss`). **To add a new pack, add its `<family>.json` there and add the file's base name to that
+array in both version branches.**
 
 ## Profile format
 
@@ -69,4 +72,4 @@ where you expect.
    register the family, and rebuild.
 
 The profiles are **Minecraft-version independent** (Iris and Oculus share the same shader source format),
-so a profile added on one branch applies verbatim to the other.
+so the single profile in `shared` serves both version branches.
