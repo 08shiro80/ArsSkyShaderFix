@@ -1,0 +1,39 @@
+{
+ "name": "Solas Shader",
+ "detect": [
+  "solas"
+ ],
+ "render": "block",
+ "patches": [
+  {
+   "file": "block.properties",
+   "op": "INSERT_AFTER",
+   "anchor": "block.9999=end_portal end_gateway\n",
+   "payload": "block.29000 = ars_nouveau:sky_block\n"
+  },
+  {
+   "file": "programs/gbuffers_block.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "\tgl_FragData[1] = vec4(clamp(smoothness, 0.0, 0.95), lightmap.y * 0.5, 0.0, 1.0);\n",
+   "payload": "\tif (blockEntityId == 29000) gl_FragData[1].b = 0.95; // ArsSkyShaderFix: sky_block side/bottom marker\n"
+  },
+  {
+   "file": "programs/gbuffers_block.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "\tgl_FragData[1] = vec4(0.0, 0.0, 0.0, 1.0);\n",
+   "payload": "\tif (blockEntityId == 29000) gl_FragData[1].b = 0.95; // ArsSkyShaderFix: sky_block side/bottom marker (non-PBR path)\n"
+  },
+  {
+   "file": "programs/deferred1.glsl",
+   "op": "REPLACE",
+   "anchor": "#if defined SS_SHADOWS || defined PBR || defined GENERATED_SPECULAR\nuniform sampler2D colortex3;\n#endif\n",
+   "payload": "uniform sampler2D colortex3; // ArsSkyShaderFix: always declared for sky_block marker read\n"
+  },
+  {
+   "file": "programs/deferred1.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "\tfloat z0 = texture2D(depthtex0, texCoord).r;\n",
+   "payload": "\tif (texture2D(colortex3, texCoord).b > 0.9) z0 = 1.0; // ArsSkyShaderFix: sky_block -> treated as sky (clouds + sky colour; occlusion stays via real depthtex0)\n"
+  }
+ ]
+}

@@ -1,0 +1,20 @@
+{
+ "name": "Mellow",
+ "detect": [
+  "mellow"
+ ],
+ "patches": [
+  {
+   "file": "program/gbuffers_skybasic.fsh",
+   "op": "REPLACE",
+   "anchor": "\tColor = vec4(0, 0, 0, 0);",
+   "payload": "\tColor = (starData.g > 0.99 && starData.r < 0.01 && starData.b < 0.01) ? vec4(0.0, 1.0, 0.0, 1.0) : vec4(0, 0, 0, 0); // ArsSkyShaderFix: sky_block marker (green vertex tint)"
+  },
+  {
+   "file": "program/deferred1.fsh",
+   "op": "REPLACE",
+   "anchor": "    if (Depth >= 1) {\n        #ifndef CUSTOM_SKYBOXES\n",
+   "payload": "    bool arsSky = (Color.g > 0.99 && Color.r < 0.01 && Color.b < 0.01); if (arsSky) Color.rgb = vec3(0.0); // ArsSkyShaderFix: sky_block\n    if (Depth >= 1 || arsSky) {\n        #ifndef CUSTOM_SKYBOXES\n"
+  }
+ ]
+}

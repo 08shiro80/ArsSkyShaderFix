@@ -1,0 +1,63 @@
+{
+ "name": "Hysteria",
+ "detect": [
+  "hysteria"
+ ],
+ "render": "block",
+ "patches": [
+  {
+   "file": "block.properties",
+   "op": "INSERT_AFTER",
+   "anchor": "block.10079 = light_gray_stained_glass light_gray_stained_glass_pane\n",
+   "payload": "block.10250 = ars_nouveau:sky_block\n"
+  },
+  {
+   "file": "program/deferred4.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "\t\tuint material_mask = uint(255.0 * data[1].y);\n",
+   "payload": "\n\t\t// ArsSkyShaderFix: sky_block sides/bottom render the pack sky at real depth (occlusion)\n\t\tif (material_mask == 250u) {\n#if defined WORLD_OVERWORLD\n\t\t\tscene_color = draw_sky(world_dir, atmosphere);\n#else\n\t\t\tscene_color = draw_sky(world_dir);\n#endif\n\t\t\tscene_color = scene_color * clouds.w + clouds.xyz;\n\t\t\tvec4 ars_fog = common_fog(far, true);\n\t\t\tscene_color = mix(ars_fog.rgb, scene_color.rgb, ars_fog.a);\n\t\t\treturn;\n\t\t}\n"
+  },
+  {
+   "file": "program/deferred1.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "uniform sampler2D noisetex;\n",
+   "payload": "uniform sampler2D colortex1; // ArsSkyShaderFix: material mask (clouds behind sky_block)\n"
+  },
+  {
+   "file": "program/deferred1.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "#include \"/include/utility/space_conversion.glsl\"\n",
+   "payload": "#include \"/include/utility/encoding.glsl\"\n"
+  },
+  {
+   "file": "program/deferred1.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "\tfloat distance_to_terrain = (depth_max == 1.0 && !is_dh_terrain)\n\t\t? -1.0\n\t\t: length(view_pos) * CLOUDS_SCALE;\n",
+   "payload": "\n\tif (uint(255.0 * unpack_unorm_2x8(texture(colortex1, uv * taau_render_scale).y).y) == 250u) distance_to_terrain = -1.0; // ArsSkyShaderFix: render clouds behind sky_block (infinite)\n"
+  },
+  {
+   "file": "program/deferred2.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "uniform sampler2D colortex12; // clouds data\n",
+   "payload": "uniform sampler2D colortex1; // ArsSkyShaderFix: material mask\n"
+  },
+  {
+   "file": "program/deferred2.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "\tfloat distance_to_terrain = length(view_pos);\n",
+   "payload": "\tbool ars_marker = uint(255.0 * unpack_unorm_2x8(texture(colortex1, uv * taau_render_scale).y).y) == 250u; // ArsSkyShaderFix\n"
+  },
+  {
+   "file": "program/deferred2.glsl",
+   "op": "REPLACE",
+   "anchor": "distance_to_terrain < closest_distance);",
+   "payload": "distance_to_terrain < closest_distance && !ars_marker); // ArsSkyShaderFix: keep cloud history on sky_block (no shimmer)"
+  },
+  {
+   "file": "program/composite0.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "\tfloat skylight = unpack_unorm_2x8(gbuffer_data_0.w).y;\n",
+   "payload": "\tif (uint(255.0 * unpack_unorm_2x8(gbuffer_data_0.y).y) == 250u) depth0 = 1.0; // ArsSkyShaderFix: full volumetric lighting on sky_block (marches past the near block)\n"
+  }
+ ]
+}

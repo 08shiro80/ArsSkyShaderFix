@@ -1,0 +1,26 @@
+{
+ "name": "Reverie",
+ "detect": [
+  "reverie"
+ ],
+ "patches": [
+  {
+   "file": "program/gbuffers_skybasic.vsh",
+   "op": "REPLACE",
+   "anchor": "void main() {\n\tgl_Position = ftransform();\n}",
+   "payload": "out vec3 arsGlColor; // ArsSkyShaderFix\nvoid main() {\n\tgl_Position = ftransform();\n\tarsGlColor = gl_Color.rgb;\n}"
+  },
+  {
+   "file": "program/gbuffers_skybasic.fsh",
+   "op": "REPLACE",
+   "anchor": "void main() {\n    /* RENDERTARGETS:0 */\n    gl_FragData[0] = vec4(0);\n}",
+   "payload": "in vec3 arsGlColor; // ArsSkyShaderFix\nvoid main() {\n    /* RENDERTARGETS:0 */\n    gl_FragData[0] = (arsGlColor.g > 0.99 && arsGlColor.r < 0.01 && arsGlColor.b < 0.01) ? vec4(0.0, 1.0, 0.0, 1.0) : vec4(0); // ArsSkyShaderFix: sky_block side marker\n}"
+  },
+  {
+   "file": "program/deferred2.fsh",
+   "op": "REPLACE",
+   "anchor": "    if (Depth >= 1) {\n        Color.rgb = SkyColor;",
+   "payload": "    vec4 arsC0 = texture(colortex0, texcoord);\n    if (Depth >= 1 || (arsC0.g > 0.99 && arsC0.r < 0.01 && arsC0.b < 0.01)) { // ArsSkyShaderFix: sky_block sides -> pack sky\n        Color.rgb = SkyColor;"
+  }
+ ]
+}

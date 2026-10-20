@@ -1,0 +1,20 @@
+{
+ "name": "Complementary (Reimagined/Unbound, +/- EuphoriaPatches)",
+ "detect": [
+  "complementary"
+ ],
+ "patches": [
+  {
+   "file": "program/gbuffers_skybasic.glsl",
+   "op": "REPLACE",
+   "anchor": "    /* DRAWBUFFERS:0 */\r\n    gl_FragData[0] = color;",
+   "payload": "    /* DRAWBUFFERS:06 */\r\n    gl_FragData[0] = color;\r\n    gl_FragData[1] = vec4(0.0, (glColor.g > 0.99 && glColor.r < 0.01 && glColor.b < 0.01) ? 251.0 / 255.0 : 0.0, 0.0, 0.0); // arsskyfix: sky_block marker (green vertex tint) -> colortex6"
+  },
+  {
+   "file": "program/deferred1.glsl",
+   "op": "INSERT_AFTER",
+   "anchor": "    float z0 = texelFetch(depthtex0, texelCoord, 0).r;",
+   "payload": "\r\n    if (int(texelFetch(colortex6, texelCoord, 0).g * 255.1) == 251) z0 = 1.0; // ArsSkyShaderFix: sky_block -> pack sky branch (clouds)"
+  }
+ ]
+}

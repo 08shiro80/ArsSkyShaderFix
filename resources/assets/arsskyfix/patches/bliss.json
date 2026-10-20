@@ -1,0 +1,44 @@
+{
+ "name": "Bliss",
+ "detect": [
+  "bliss"
+ ],
+ "render": "block",
+ "patches": [
+  {
+   "file": "block.properties",
+   "op": "APPEND",
+   "payload": "\nblock.10500 = ars_nouveau:sky_block\n"
+  },
+  {
+   "file": "dimensions/all_solid.fsh",
+   "op": "INSERT_AFTER",
+   "anchor": "flat varying float blockID;\r\n",
+   "payload": "uniform int blockEntityId; // ArsSkyShaderFix: sky_block marker\n"
+  },
+  {
+   "file": "dimensions/all_solid.fsh",
+   "op": "REPLACE",
+   "anchor": "\t\tgl_FragData[2] = vec4(FlatNormals * 0.5 + 0.5, VanillaAO);",
+   "payload": "\t\tgl_FragData[2] = vec4(FlatNormals * 0.5 + 0.5, blockEntityId == 10500 ? 0.252 : VanillaAO); // ArsSkyShaderFix: sky_block marker (colortex15.a)"
+  },
+  {
+   "file": "dimensions/composite1.fsh",
+   "op": "REPLACE",
+   "anchor": "\tif (swappedDepth >= 1.0) {",
+   "payload": "\tif (swappedDepth >= 1.0 || abs(texture2D(colortex15,texcoord).a - 0.252) < 0.004) { // ArsSkyShaderFix: sky_block -> pack sky"
+  },
+  {
+   "file": "dimensions/composite2.fsh",
+   "op": "INSERT_AFTER",
+   "anchor": "uniform sampler2D depthtex1;\r\n",
+   "payload": "uniform sampler2D colortex15; // ArsSkyShaderFix: sky_block marker\n"
+  },
+  {
+   "file": "dimensions/composite2.fsh",
+   "op": "INSERT_AFTER",
+   "anchor": "\tfloat z0 = texture2D(depthtex0, tc).x;\r\n",
+   "payload": "\tif (abs(texture2D(colortex15, tc).a - 0.252) < 0.004) z0 = 1.0; // ArsSkyShaderFix: render clouds behind sky_block\r\n"
+  }
+ ]
+}
