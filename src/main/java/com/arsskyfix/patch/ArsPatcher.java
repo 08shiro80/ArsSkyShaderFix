@@ -19,7 +19,8 @@ import org.apache.logging.log4j.Logger;
  */
 public final class ArsPatcher {
     private static final Logger LOGGER = LogManager.getLogger("arsskyfix.patch");
-    private static final String[] FAMILIES = {"complementary", "photon", "bsl", "seus", "sildurs"};
+    private static final String[] FAMILIES = {"complementary", "photon", "bsl", "seus", "sildurs", "solas",
+        "hysteria", "spooklementary", "mellow", "reverie", "bliss"};
 
     private static volatile List<PackPatchSet> registry;
     private static volatile PackPatchSet active;

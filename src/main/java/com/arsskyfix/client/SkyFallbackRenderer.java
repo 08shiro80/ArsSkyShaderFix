@@ -16,8 +16,6 @@ import org.joml.Matrix4f;
 
 public final class SkyFallbackRenderer {
 
-    public static final int UP = 0;
-
     private static final ResourceLocation WHITE = ResourceLocation.fromNamespaceAndPath("arsskyfix", "textures/white.png");
 
     private static final float[][] UVS = { {0, 0}, {0, 1}, {1, 1}, {1, 0} };
@@ -40,15 +38,6 @@ public final class SkyFallbackRenderer {
         for (int f = 0; f < CubeFaces.FACES.length; f++) {
             emitFace(f, vc, matrix, base);
         }
-    }
-
-    public static void renderFace(int face, float partialTick, PoseStack pose, MultiBufferSource buffers) {
-        float[] base = baseColor(partialTick);
-        if (base == null) {
-            return;
-        }
-        VertexConsumer vc = buffers.getBuffer(RenderType.entityCutoutNoCull(WHITE));
-        emitFace(face, vc, pose.last().pose(), base);
     }
 
     private static float[] baseColor(float partialTick) {

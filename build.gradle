@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'com.arsskyfix'
-version = '1.0.0'
+version = '1.0.1'
 
 base.archivesName = 'arsskyfix'
 
@@ -11,6 +11,19 @@ java {
     toolchain.languageVersion = JavaLanguageVersion.of(21)
 }
 
+// Single source of truth for the mod version: 'version' above. neoforge.mods.toml reads it at runtime
+// via ${file.jarVersion} from the jar manifest set here.
+jar {
+    manifest {
+        attributes([
+            'Implementation-Version': project.version
+        ])
+    }
+}
+
+// Shader profiles + textures are version-independent and shared with the 1.20.1 build.
+// Editing ../shared/resources applies to both; there is no per-project copy.
+sourceSets.main.resources.srcDir '../shared/resources'
 
 repositories {
     maven { url = 'https://maven.parchmentmc.org' }
@@ -22,13 +35,11 @@ repositories {
     maven { url = 'https://cursemaven.com'; content { includeGroup 'curse.maven' } }
 }
 
-def refMods = "${projectDir}/libs"
-
 dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
-    // Compiled against the exact versions shipped in the pack; both are provided at runtime.
-    compileOnly files("${refMods}/ars_nouveau-1.21.1-5.13.0.jar")
-    compileOnly files("${refMods}/iris-neoforge-1.8.14-beta.1+mc1.21.1.jar")
+    // Compile-time references only (API surface); provided at runtime by the pack. Pulled from Modrinth.
+    compileOnly "maven.modrinth:ars-nouveau:5.11.7"
+    compileOnly "maven.modrinth:iris:1.8.12+1.21.1-neoforge"
     // GeckoLib is a transitive dependency of Ars Nouveau, referenced by its tile hierarchy.
     compileOnly "maven.modrinth:geckolib:4.7.1.2"
 }
